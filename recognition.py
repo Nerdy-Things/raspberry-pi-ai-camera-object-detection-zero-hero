@@ -10,6 +10,7 @@ import numpy as np
 import time
 
 from itkacher.date_utils import DateUtils
+from itkacher.time_utils import TimeUtils
 from itkacher.file_utils import FileUtils
 
 from picamera2 import MappedArray, Picamera2
@@ -43,9 +44,9 @@ class Detection:
         self.conf = conf
         self.box = imx500.convert_inference_coords(coords, metadata, picam2)
 
-def write_json_to_file(filename: str):
+def write_json_to_file(filename: str, data: any):
     with open(filename, 'w') as file:
-        json.dump(last_results, file, cls=DetectionEncoder, indent=4)
+        json.dump(data, file, cls=DetectionEncoder, indent=4)
 
 def write_image_to_file(picam2: Picamera2):
     # Record file to SD card
@@ -140,6 +141,7 @@ def draw_detections(request, stream="main"):
 
 
 if __name__ == "__main__":
+    TimeUtils.start("Model initialization")
 
     model = "./imx500-models/imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk"
     # model = "./imx500-models/imx500_network_efficientdet_lite0_pp.rpk"
@@ -178,13 +180,18 @@ if __name__ == "__main__":
     last_results = None
     picam2.pre_callback = draw_detections
     labels = get_labels()
+    TimeUtils.end("Model initialization")
     print("Started!")
+    write_json_to_file(filename='labels.json', data=intrinsics.labels)
     while True:
+        TimeUtils.start("detection")
+        write_json_to_file(filename='metadata.json', data=picam2.capture_metadata())
         last_results = parse_detections(picam2.capture_metadata())
+        TimeUtils.end("detection")
         if (len(last_results) > 0):
-            write_json_to_file(filename='data.json')
             write_image_to_file(picam2=picam2)
+            write_json_to_file(filename='labels.json', data=intrinsics.labels) 
             for result in last_results:
-                label = f"{labels[int(result.category)]} ({result.conf:.2f})"
+                label = f"{int(result.category)} {labels[int(result.category)]} ({result.conf:.2f})"
                 print(f"Detected {label}")
 
