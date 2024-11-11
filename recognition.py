@@ -185,12 +185,13 @@ if __name__ == "__main__":
     write_json_to_file(filename='labels.json', data=intrinsics.labels)
     while True:
         TimeUtils.start("detection")
-        write_json_to_file(filename='metadata.json', data=picam2.capture_metadata())
-        last_results = parse_detections(picam2.capture_metadata())
+        metadata = picam2.capture_metadata()
+        last_results = parse_detections(metadata)
         TimeUtils.end("detection")
+        write_json_to_file(filename='metadata.json', data=metadata)
         if (len(last_results) > 0):
             write_image_to_file(picam2=picam2)
-            write_json_to_file(filename='labels.json', data=intrinsics.labels) 
+            write_json_to_file(filename='data.json', data=last_results) 
             for result in last_results:
                 label = f"{int(result.category)} {labels[int(result.category)]} ({result.conf:.2f})"
                 print(f"Detected {label}")
