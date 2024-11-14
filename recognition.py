@@ -143,7 +143,8 @@ def draw_detections(request, stream="main"):
 if __name__ == "__main__":
     TimeUtils.start("Model initialization")
 
-    model = "./imx500-models/imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk"
+    model = "./imx500-models/imx500_network_yolov8n_pp.rpk"
+    # model = "./imx500-models/imx500_network_ssd_mobilenetv2_fpnlite_320x320_pp.rpk"
     # model = "./imx500-models/imx500_network_efficientdet_lite0_pp.rpk"
     # model = "./imx500-models/imx500_network_nanodet_plus_416x416.rpk"
     # model = "./imx500-models/imx500_network_nanodet_plus_416x416_pp.rpk"
@@ -181,17 +182,12 @@ if __name__ == "__main__":
     picam2.pre_callback = draw_detections
     labels = get_labels()
     TimeUtils.end("Model initialization")
-    print("Started!")
-    write_json_to_file(filename='labels.json', data=intrinsics.labels)
     while True:
         TimeUtils.start("detection")
         metadata = picam2.capture_metadata()
         last_results = parse_detections(metadata)
         TimeUtils.end("detection")
-        write_json_to_file(filename='metadata.json', data=metadata)
         if (len(last_results) > 0):
-            write_image_to_file(picam2=picam2)
-            write_json_to_file(filename='data.json', data=last_results) 
             for result in last_results:
                 label = f"{int(result.category)} {labels[int(result.category)]} ({result.conf:.2f})"
                 print(f"Detected {label}")
