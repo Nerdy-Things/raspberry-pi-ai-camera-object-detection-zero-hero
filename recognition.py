@@ -186,6 +186,7 @@ if __name__ == "__main__":
         TimeUtils.start("detection")
         metadata = picam2.capture_metadata()
         last_results = parse_detections(metadata)
+        write_image_to_file(picam2=picam2)
         TimeUtils.end("detection")
         if (len(last_results) > 0):
             for result in last_results:
